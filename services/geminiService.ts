@@ -22,7 +22,7 @@ export class GeminiService {
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    console.log("[DIAGNOSTICA V5] Controllo profondo in corso...");
+    console.log("[DIAGNOSTICA V6] Controllo in corso...");
     try {
       const { status, length } = this.getKeyStatus();
       const apiKey = process.env.API_KEY;
@@ -30,37 +30,33 @@ export class GeminiService {
       if (status !== 'ok') {
         return { 
           success: false, 
-          message: `[BUILD_PRO_V5] ATTENZIONE: La variabile API_KEY è ${status.toUpperCase()}. 
-          Nonostante tu l'abbia aggiunta su Vercel, il sito corrente NON la vede. 
-          RISOLUZIONE: Devi andare nella tab 'Deployments' di Vercel e fare 'REDEPLOY' sull'ultimo deploy per forzare l'aggiornamento.` 
+          message: `[v6.0] ERRORE: Chiave ${status.toUpperCase()}. Vercel non ha ancora iniettato la chiave nel codice. Esegui un 'REDEPLOY' manuale dalla dashboard di Vercel.` 
         };
       }
       
-      // Se arriviamo qui, la chiave esiste fisicamente nel codice
       const ai = new GoogleGenAI({ apiKey: apiKey! });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test di sistema. Rispondi solo: "SISTEMA_OPERATIVO"',
+        contents: 'Test. Rispondi: "OK"',
       });
       
       if (response && response.text) {
         return { 
           success: true, 
-          message: `URRÀ! [BUILD_PRO_V5] Connessione riuscita. La chiave (lunghezza: ${length} char) è attiva e funzionante.` 
+          message: `[v6.0] CONNESSIONE RIUSCITA! Alex AI è pronto. Chiave rilevata correttamente.` 
         };
       }
-      return { success: false, message: "[BUILD_PRO_V5] Errore: Risposta vuota da Google. La chiave potrebbe essere limitata." };
+      return { success: false, message: "[v6.0] Errore: Risposta vuota da Google." };
     } catch (error: any) {
-      console.error("Gemini V5 Error:", error);
-      const msg = error.message || "";
-      return { success: false, message: `[BUILD_PRO_V5] ERRORE API: ${msg}` };
+      console.error("Gemini V6 Error:", error);
+      return { success: false, message: `[v6.0] ERRORE API: ${error.message || 'Errore sconosciuto'}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") return "Alex è temporaneamente offline per aggiornamento chiavi. Contattaci su info@fareapp.it";
+      if (!apiKey || apiKey === "undefined") return "Alex è temporaneamente offline. Contattaci su info@fareapp.it per assistenza immediata.";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -71,9 +67,9 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Puoi ripetere? Mi sono perso un attimo.";
+      return result.text || "Scusa, non ho capito bene. Puoi ripetere?";
     } catch (error) {
-      return "C'è un piccolo problema tecnico. Alex tornerà tra un istante!";
+      return "Siamo spiacenti, c'è un problema di connessione con l'AI. Riprova tra poco.";
     }
   }
 }

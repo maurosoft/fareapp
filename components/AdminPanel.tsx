@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Save, RotateCcw, X, ShieldCheck, Lock, ArrowLeft, CheckCircle2, Image as ImageIcon, Layout as LayoutIcon, Bot, Upload, Link as LinkIcon, Check, Loader2, Palette, Smartphone, AlignLeft, Apple, Pencil, Zap, Activity, AlertCircle, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, RotateCcw, X, Lock, CheckCircle2, Image as ImageIcon, Bot, Link as LinkIcon, Loader2, Pencil, Zap, AlertCircle, Smartphone, ExternalLink, Trash2, Plus } from 'lucide-react';
 import { DEFAULT_SYSTEM_INSTRUCTION, geminiService } from '../services/geminiService';
 import { TEMPLATES as DEFAULT_TEMPLATES } from '../constants';
 import { Template } from '../types';
@@ -16,7 +16,7 @@ const DEFAULT_ADMIN = {
 };
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
-  const [view, setView] = useState<'login' | 'reset' | 'editor' | 'templates' | 'branding'>('login');
+  const [view, setView] = useState<'login' | 'editor' | 'templates' | 'branding'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState(false);
@@ -62,7 +62,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   const handleTestConnection = async () => {
     setTestStatus('loading');
-    setTestMessage('Verifica integrità v5.0...');
+    setTestMessage('Verifica v6.0 in corso...');
     const result = await geminiService.testConnection();
     setTestStatus(result.success ? 'success' : 'error');
     setTestMessage(result.message);
@@ -78,6 +78,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
     window.dispatchEvent(new Event('fareapp_data_updated'));
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  const updateTemplateField = (id: string, field: keyof Template, value: string) => {
+    setTemplates(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
   if (!isOpen) return null;
@@ -110,12 +114,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-600 p-2 rounded-xl"><Settings size={20} /></div>
-                  <h2 className="font-bold text-lg hidden sm:block">Control Panel <span className="text-[10px] bg-blue-500 px-2 py-0.5 rounded text-white ml-2 font-mono">v5.0</span></h2>
+                  <h2 className="font-bold text-lg hidden sm:block">Control Panel <span className="text-[10px] bg-blue-500 px-2 py-0.5 rounded text-white ml-2 font-mono">v6.0</span></h2>
                 </div>
                 <nav className="flex gap-2">
-                  <button onClick={() => setView('editor')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'editor' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Chatbot</button>
-                  <button onClick={() => setView('templates')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'templates' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Mockups</button>
-                  <button onClick={() => setView('branding')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'branding' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Branding</button>
+                  <button onClick={() => setView('editor')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'editor' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Chatbot AI</button>
+                  <button onClick={() => setView('templates')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'templates' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Mockups App</button>
+                  <button onClick={() => setView('branding')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${view === 'branding' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>Sito & Brand</button>
                 </nav>
               </div>
               <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition-colors text-gray-400 hover:text-white">
@@ -131,7 +135,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <div className="flex items-center gap-4">
                         <div className="bg-blue-50 p-3 rounded-2xl text-blue-600"><Bot size={24} /></div>
                         <div>
-                          <h3 className="text-xl font-black text-gray-900">Configurazione Alex AI</h3>
+                          <h3 className="text-xl font-black text-gray-900">Alex AI Consultant</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <div className={`w-2 h-2 rounded-full ${keyInfo.status === 'ok' ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">
@@ -144,7 +148,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <div className="flex flex-col gap-3 min-w-[320px]">
                          <button onClick={handleTestConnection} disabled={testStatus === 'loading'} className="flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-xs uppercase bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-xl shadow-blue-200">
                           {testStatus === 'loading' ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
-                          Testa Connessione V5
+                          Esegui Test Connessione v6.0
                          </button>
                          
                          {testStatus !== 'idle' && (
@@ -164,13 +168,94 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
               
-              {/* Le altre sezioni templates e branding rimangono invariate */}
+              {view === 'templates' && (
+                <div className="max-w-6xl mx-auto space-y-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-black text-gray-900 flex items-center gap-2"><Smartphone size={24}/> Gestione Mockups App</h3>
+                    <p className="text-xs text-gray-500 font-bold">Modifica i contenuti visualizzati negli iPhone mockup</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {templates.map((t) => (
+                      <div key={t.id} className="bg-white p-6 rounded-[2rem] border border-gray-200 shadow-sm flex gap-6">
+                        <div className="w-32 aspect-[9/18.5] bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 shrink-0">
+                          <img src={t.image} className="w-full h-full object-cover" alt="" />
+                        </div>
+                        <div className="flex-1 space-y-4">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">Nome App</label>
+                              <input value={t.name} onChange={(e) => updateTemplateField(t.id, 'name', e.target.value)} className="w-full p-2 bg-gray-50 border-none rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <div>
+                              <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">Categoria</label>
+                              <input value={t.category} onChange={(e) => updateTemplateField(t.id, 'category', e.target.value)} className="w-full p-2 bg-blue-50 text-blue-700 border-none rounded-lg text-xs font-bold" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">URL Immagine (Mockup Screen)</label>
+                            <input value={t.image} onChange={(e) => updateTemplateField(t.id, 'image', e.target.value)} className="w-full p-2 bg-gray-50 border-none rounded-lg text-[10px] font-mono" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">Descrizione Breve</label>
+                            <textarea value={t.description || ''} onChange={(e) => updateTemplateField(t.id, 'description', e.target.value)} className="w-full p-2 bg-gray-50 border-none rounded-lg text-[10px] h-16 resize-none" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">Link Play Store (Opzionale)</label>
+                              <input value={t.playStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'playStoreUrl', e.target.value)} className="w-full p-2 bg-gray-50 border-none rounded-lg text-[10px]" placeholder="Link diretto..." />
+                            </div>
+                            <div>
+                              <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block tracking-tighter">Link App Store (Opzionale)</label>
+                              <input value={t.appStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'appStoreUrl', e.target.value)} className="w-full p-2 bg-gray-50 border-none rounded-lg text-[10px]" placeholder="Link diretto..." />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {view === 'branding' && (
+                <div className="max-w-2xl mx-auto space-y-6">
+                  <div className="bg-white p-8 rounded-[2rem] border border-gray-200 space-y-8">
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2"><ImageIcon size={24}/> Identità Visiva</h3>
+                      <label className="text-xs font-bold text-gray-500 mb-3 block uppercase tracking-wider">Logo Principale del Sito (URL)</label>
+                      <div className="flex gap-4">
+                        <input value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="flex-1 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="Esempio: https://tuosito.it/logo.png" />
+                        {siteLogo && (
+                          <div className="w-16 h-16 rounded-2xl border border-gray-100 p-2 flex items-center justify-center bg-white shadow-sm shrink-0">
+                            <img src={siteLogo} className="max-w-full max-h-full object-contain" alt="Preview Logo" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[10px] text-gray-400 font-medium italic">* Inserisci un URL diretto a un'immagine PNG o SVG.</p>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100">
+                      <h3 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-2"><LinkIcon size={24}/> Link Globali agli Store</h3>
+                      <div className="space-y-6">
+                        <div>
+                          <label className="text-xs font-bold text-gray-500 mb-2 block uppercase tracking-wider">Google Play Store (Globale)</label>
+                          <input value={playStoreUrl} onChange={(e) => setPlayStoreUrl(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://play.google.com/store/apps/details?id=..." />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-gray-500 mb-2 block uppercase tracking-wider">Apple App Store (Globale)</label>
+                          <input value={appStoreUrl} onChange={(e) => setAppStoreUrl(e.target.value)} className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://apps.apple.com/it/app/..." />
+                        </div>
+                      </div>
+                      <p className="mt-4 text-[10px] text-blue-600 font-bold">Questi link verranno usati come fallback se l'App specifica non ha un link proprio.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-6 bg-white border-t border-gray-200 flex items-center justify-between shrink-0">
-              <button onClick={() => { if(confirm('Svuotare la cache locale?')){ localStorage.clear(); window.location.reload(); } }} className="text-gray-400 hover:text-red-600 text-[10px] font-bold uppercase flex items-center gap-2"><RotateCcw size={14} /> Clear Cache</button>
-              <button onClick={persistChanges} className="bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-black text-sm shadow-xl hover:bg-blue-700 transition-all">
-                {isSaved ? 'DATI SALVATI' : 'SALVA TUTTO'}
+              <button onClick={() => { if(confirm('Attenzione! Questa operazione svuota la memoria locale del browser e ricarica il sito. Continuare?')){ localStorage.clear(); window.location.reload(); } }} className="text-gray-400 hover:text-red-600 text-[10px] font-bold uppercase flex items-center gap-2 tracking-widest px-4 py-2 hover:bg-red-50 rounded-xl transition-colors"><RotateCcw size={14} /> Reset Cache Locale</button>
+              <button onClick={persistChanges} className="bg-blue-600 text-white px-12 py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95">
+                {isSaved ? 'MODIFICHE SALVATE ✓' : 'SALVA TUTTE LE MODIFICHE'}
               </button>
             </div>
           </>
