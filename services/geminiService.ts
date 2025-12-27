@@ -12,25 +12,25 @@ export class GeminiService {
     return localStorage.getItem('fareapp_chatbot_prompt') || DEFAULT_SYSTEM_INSTRUCTION;
   }
 
-  // Analisi profonda dello stato della chiave nel contesto di runtime
-  getKeyStatus(): { status: 'ok' | 'missing' | 'undefined_string' | 'empty' | 'malformed', length: number, type: string } {
+  // Verifica approfondita dello stato della chiave nel browser
+  getKeyStatus(): { status: 'ok' | 'missing' | 'undefined_string' | 'empty' | 'malformed', length: number, env: string } {
     try {
+      // @ts-ignore - Tentativo di accesso sicuro alla variabile iniettata dal bundler
       const key = process.env.API_KEY;
-      const type = typeof key;
       
-      if (key === undefined) return { status: 'missing', length: 0, type };
-      if (key === "undefined") return { status: 'undefined_string', length: 0, type };
-      if (typeof key !== 'string') return { status: 'malformed', length: 0, type };
-      if (key.trim() === "") return { status: 'empty', length: 0, type };
+      if (key === undefined) return { status: 'missing', length: 0, env: 'process.env is undefined' };
+      if (key === "undefined") return { status: 'undefined_string', length: 0, env: 'string literal undefined' };
+      if (typeof key !== 'string') return { status: 'malformed', length: 0, env: typeof key };
+      if (key.trim() === "") return { status: 'empty', length: 0, env: 'empty string' };
       
-      return { status: 'ok', length: key.length, type };
+      return { status: 'ok', length: key.length, env: 'valid string' };
     } catch (e) {
-      return { status: 'missing', length: 0, type: 'error' };
+      return { status: 'missing', length: 0, env: 'exception during access' };
     }
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    console.log("[DIAGNOSTICA V8] Avvio test ambientale...");
+    console.log("[DIAGNOSTICA V9] Controllo variabili di ambiente...");
     try {
       const { status, length } = this.getKeyStatus();
       const apiKey = process.env.API_KEY;
@@ -38,33 +38,38 @@ export class GeminiService {
       if (status !== 'ok') {
         return { 
           success: false, 
-          message: `[v8.0] ERRORE: La chiave è ${status.toUpperCase()}. 
-          Vercel richiede un REDEPLOY dopo l'aggiunta delle variabili d'ambiente.` 
+          message: `[v9.0] ERRORE: Chiave ${status.toUpperCase()}. 
+          Il codice non ha ricevuto la chiave. 
+          SOLUZIONE: Vai su Vercel -> Deployments -> Clicca 'Redeploy' sull'ultima versione. 
+          Le variabili d'ambiente richiedono una nuova compilazione per essere attivate.` 
         };
       }
       
       const ai = new GoogleGenAI({ apiKey: apiKey! });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test. Rispondi: OK',
+        contents: 'Test tecnico v9. Rispondi brevemente.',
       });
       
       if (response && response.text) {
         return { 
           success: true, 
-          message: `[v8.0] CONNESSIONE ATTIVA. Alex AI è pronto.` 
+          message: `[v9.0] CONNESSIONE RIUSCITA! L'AI sta rispondendo correttamente.` 
         };
       }
-      return { success: false, message: "[v8.0] Risposta vuota." };
+      return { success: false, message: "[v9.0] Errore: Nessun testo ricevuto dall'AI." };
     } catch (error: any) {
-      return { success: false, message: `[v8.0] ERRORE API: ${error.message}` };
+      return { 
+        success: false, 
+        message: `[v9.0] ERRORE API GOOGLE: ${error.message}. Verifica che la chiave sia valida su AI Studio.` 
+      };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") return "Alex è in manutenzione. Contattaci a info@fareapp.it";
+      if (!apiKey || apiKey === "undefined") return "Assistente temporaneamente offline. Contattaci a info@fareapp.it";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -73,9 +78,9 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Non ho capito, puoi ripetere?";
+      return result.text || "Non ho ricevuto risposta, riprova.";
     } catch (error) {
-      return "Problema di connessione. Riprova tra poco.";
+      return "Errore di comunicazione con l'AI.";
     }
   }
 }
