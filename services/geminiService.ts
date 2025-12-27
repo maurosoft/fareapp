@@ -14,62 +14,65 @@ export class GeminiService {
 
   // Verifica approfondita dello stato della chiave nel browser
   getKeyStatus(): { status: 'ok' | 'missing' | 'undefined_string' | 'empty' | 'malformed', length: number, env: string } {
+    console.log("[v10.0 DEBUG] Controllo stato API_KEY...");
     try {
-      // @ts-ignore - Tentativo di accesso sicuro alla variabile iniettata dal bundler
+      // @ts-ignore
       const key = process.env.API_KEY;
       
-      if (key === undefined) return { status: 'missing', length: 0, env: 'process.env is undefined' };
-      if (key === "undefined") return { status: 'undefined_string', length: 0, env: 'string literal undefined' };
-      if (typeof key !== 'string') return { status: 'malformed', length: 0, env: typeof key };
-      if (key.trim() === "") return { status: 'empty', length: 0, env: 'empty string' };
+      if (key === undefined) {
+        console.warn("[v10.0] process.env.API_KEY is undefined");
+        return { status: 'missing', length: 0, env: 'Variabile non iniettata dal bundler' };
+      }
+      if (key === "undefined") {
+        return { status: 'undefined_string', length: 0, env: 'Stringa letterale "undefined"' };
+      }
+      if (typeof key !== 'string') {
+        return { status: 'malformed', length: 0, env: `Tipo errato: ${typeof key}` };
+      }
+      if (key.trim() === "") {
+        return { status: 'empty', length: 0, env: 'Stringa vuota' };
+      }
       
-      return { status: 'ok', length: key.length, env: 'valid string' };
+      console.log("[v10.0] API_KEY rilevata con successo.");
+      return { status: 'ok', length: key.length, env: 'Valida' };
     } catch (e) {
-      return { status: 'missing', length: 0, env: 'exception during access' };
+      console.error("[v10.0] Errore critico accesso process.env:", e);
+      return { status: 'missing', length: 0, env: 'Eccezione durante accesso' };
     }
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    console.log("[DIAGNOSTICA V9] Controllo variabili di ambiente...");
     try {
-      const { status, length } = this.getKeyStatus();
+      const { status } = this.getKeyStatus();
       const apiKey = process.env.API_KEY;
       
       if (status !== 'ok') {
         return { 
           success: false, 
-          message: `[v9.0] ERRORE: Chiave ${status.toUpperCase()}. 
-          Il codice non ha ricevuto la chiave. 
-          SOLUZIONE: Vai su Vercel -> Deployments -> Clicca 'Redeploy' sull'ultima versione. 
-          Le variabili d'ambiente richiedono una nuova compilazione per essere attivate.` 
+          message: `[v10.0] CHIAVE MANCANTE: La variabile non è stata compilata nel sito. 
+          Vercel ha bisogno di un REDEPLOY PULITO (senza build cache) per inserire la chiave nel codice.` 
         };
       }
       
       const ai = new GoogleGenAI({ apiKey: apiKey! });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test tecnico v9. Rispondi brevemente.',
+        contents: 'Test v10. Rispondi: SISTEMA ONLINE',
       });
       
       if (response && response.text) {
-        return { 
-          success: true, 
-          message: `[v9.0] CONNESSIONE RIUSCITA! L'AI sta rispondendo correttamente.` 
-        };
+        return { success: true, message: `[v10.0] TEST SUPERATO! Alex AI è ora connesso.` };
       }
-      return { success: false, message: "[v9.0] Errore: Nessun testo ricevuto dall'AI." };
+      return { success: false, message: "[v10.0] Errore: Nessun dato dai server Google." };
     } catch (error: any) {
-      return { 
-        success: false, 
-        message: `[v9.0] ERRORE API GOOGLE: ${error.message}. Verifica che la chiave sia valida su AI Studio.` 
-      };
+      return { success: false, message: `[v10.0] ERRORE API: ${error.message}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") return "Assistente temporaneamente offline. Contattaci a info@fareapp.it";
+      if (!apiKey || apiKey === "undefined") return "Alex è in pausa tecnica per configurazione API. Scrivici a info@fareapp.it";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -78,9 +81,9 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Non ho ricevuto risposta, riprova.";
+      return result.text || "Puoi ripetere? Non ho ricevuto dati.";
     } catch (error) {
-      return "Errore di comunicazione con l'AI.";
+      return "Spiacente, Alex ha problemi di connessione.";
     }
   }
 }
