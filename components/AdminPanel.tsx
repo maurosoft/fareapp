@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, RotateCcw, X, Lock, CheckCircle2, Image as ImageIcon, Bot, Link as LinkIcon, Loader2, Pencil, Zap, AlertCircle, Smartphone, ExternalLink, Trash2, Plus, LayoutGrid, Info, HelpCircle, ArrowRight } from 'lucide-react';
+import { Settings, RotateCcw, X, Lock, CheckCircle2, Image as ImageIcon, Bot, Link as LinkIcon, Loader2, Pencil, Zap, AlertCircle, Smartphone, ExternalLink, Trash2, Plus, LayoutGrid, Info, HelpCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { DEFAULT_SYSTEM_INSTRUCTION, geminiService } from '../services/geminiService';
 import { TEMPLATES as DEFAULT_TEMPLATES } from '../constants';
 import { Template } from '../types';
@@ -98,7 +98,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   const removeTemplate = (id: string) => {
     const t = templates.find(item => item.id === id);
-    if (window.confirm(`ELIMINAZIONE MOCKUP\n\nStai rimuovendo "${t?.name || 'questa App'}".\n\nRicorda di cliccare "SALVA TUTTE LE MODIFICHE" per confermare.`)) {
+    if (window.confirm(`ELIMINAZIONE\n\nVuoi rimuovere "${t?.name || 'questa App'}"?`)) {
       setTemplates(prev => prev.filter(item => item.id !== id));
     }
   };
@@ -106,45 +106,39 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-white/20">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+      <div className="bg-white w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {view === 'login' ? (
           <div className="max-w-md mx-auto w-full py-24 px-6">
-            <div className="bg-gray-950 p-10 rounded-[2.5rem] text-white shadow-2xl border border-white/5">
+            <div className="bg-gray-950 p-10 rounded-[2.5rem] text-white">
               <div className="flex flex-col items-center gap-6 mb-10">
                 <div className="bg-blue-600 p-5 rounded-2xl shadow-xl shadow-blue-500/20">
                   <Lock size={36} />
                 </div>
-                <div className="text-center">
-                  <h2 className="font-black text-3xl tracking-tight mb-1">Fare App Admin</h2>
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest italic">Pannello Sicuro v11.0</p>
-                </div>
+                <h2 className="font-black text-3xl tracking-tight">Fare App Admin</h2>
               </div>
               <form onSubmit={handleLogin} className="space-y-4">
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Email" required />
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Password" required />
                 {loginError && <p className="text-red-400 text-xs font-bold text-center">Credenziali errate</p>}
-                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all active:scale-[0.98]">Entra nel Sistema</button>
+                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-xl hover:bg-blue-700 transition-all">Accedi</button>
               </form>
-              <button onClick={onClose} className="w-full mt-6 text-gray-500 hover:text-white text-xs font-bold text-center block transition-colors">Torna al sito pubblico</button>
+              <button onClick={onClose} className="w-full mt-6 text-gray-500 hover:text-white text-xs font-bold text-center block">Annulla</button>
             </div>
           </div>
         ) : (
           <>
-            <div className="bg-gray-950 p-6 text-white flex justify-between items-center shrink-0 border-b border-white/10">
+            <div className="bg-gray-950 p-6 text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-8">
                 <div className="flex items-center gap-3">
-                  <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20"><Settings size={22} /></div>
-                  <div>
-                    <h2 className="font-black text-xl leading-tight">Control Center</h2>
-                    <p className="text-[10px] text-blue-400 font-mono uppercase">Version 11.0_STABLE</p>
-                  </div>
+                  <div className="bg-blue-600 p-2.5 rounded-xl"><Settings size={22} /></div>
+                  <h2 className="font-black text-xl">Admin v12.0</h2>
                 </div>
-                <nav className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-                  <button onClick={() => setView('editor')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'editor' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>ALEX AI</button>
-                  <button onClick={() => setView('templates')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'templates' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>MOCKUPS APP</button>
-                  <button onClick={() => setView('branding')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'branding' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>BRANDING</button>
+                <nav className="flex bg-white/5 p-1 rounded-xl">
+                  <button onClick={() => setView('editor')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'editor' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>ALEX AI</button>
+                  <button onClick={() => setView('templates')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'templates' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>APP GALLERY</button>
+                  <button onClick={() => setView('branding')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'branding' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>BRANDING</button>
                 </nav>
               </div>
               <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition-colors text-gray-400 hover:text-white">
@@ -155,119 +149,91 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             <div className="flex-1 overflow-y-auto bg-gray-50 p-6 sm:p-10">
               
               {view === 'editor' && (
-                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4">
+                <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100">
                       <div className="flex flex-col md:flex-row justify-between gap-6 mb-8">
                         <div className="flex items-center gap-4">
-                          <div className="bg-blue-600 p-4 rounded-2xl text-white shadow-xl shadow-blue-200"><Bot size={32} /></div>
+                          <div className="bg-blue-600 p-4 rounded-2xl text-white shadow-xl"><Bot size={32} /></div>
                           <div>
-                            <h3 className="text-xl font-black text-gray-900">Configurazione Alex</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <div className={`w-2 h-2 rounded-full ${keyInfo.status === 'ok' ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
-                              <span className="text-[10px] font-black uppercase tracking-tighter text-gray-400">Status API: {keyInfo.status}</span>
-                            </div>
+                            <h3 className="text-xl font-black text-gray-900">Configura Alex AI</h3>
+                            <span className="text-[10px] font-black uppercase text-gray-400">Key Status: {keyInfo.status}</span>
                           </div>
                         </div>
-                        <button onClick={handleTestConnection} disabled={testStatus === 'loading'} className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-black text-[10px] uppercase bg-gray-900 text-white hover:bg-blue-600 transition-all shadow-xl">
+                        <button onClick={handleTestConnection} disabled={testStatus === 'loading'} className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-black text-[10px] uppercase bg-gray-900 text-white hover:bg-blue-600 transition-all">
                           {testStatus === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                          TEST DIAGNOSTICO v11
+                          TEST CONNESSIONE v12
                         </button>
                       </div>
 
                       {testStatus !== 'idle' && (
-                         <div className={`mb-8 p-6 rounded-2xl flex items-start gap-4 border ${testStatus === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-                           {testStatus === 'success' ? <CheckCircle2 size={24} className="shrink-0" /> : <AlertCircle size={24} className="shrink-0" />}
-                           <div className="space-y-1">
-                             <p className="text-xs font-black uppercase tracking-widest">Risultato Analisi:</p>
-                             <p className="text-sm font-medium leading-relaxed">{testMessage}</p>
-                           </div>
+                         <div className={`mb-8 p-6 rounded-2xl border ${testStatus === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+                           <p className="text-sm font-medium leading-relaxed">{testMessage}</p>
                          </div>
                       )}
 
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Pencil size={12}/> System Instructions per Alex</label>
-                        <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full h-[300px] p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none shadow-inner leading-relaxed" />
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">Istruzioni di sistema</label>
+                        <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full h-[300px] p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" />
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    <div className="bg-amber-600 p-8 rounded-[2rem] text-white shadow-2xl shadow-amber-200">
-                      <h4 className="font-black text-lg mb-4 flex items-center gap-2"><HelpCircle size={22}/> Hai configurato Vercel?</h4>
-                      <p className="text-amber-50 text-xs leading-relaxed mb-6 font-medium">Se vedi ancora "MISSING" nonostante hai aggiunto la chiave su Vercel, ecco l'ultimo passo obbligatorio:</p>
-                      <div className="space-y-4">
-                        <div className="bg-black/10 p-4 rounded-xl border border-white/10 text-[11px] leading-relaxed">
-                          Vai nella Dashboard di Vercel -> <b>Deployments</b> -> Clicca sui <b>3 puntini (...)</b> dell'ultimo deploy e seleziona <b>REDEPLOY</b>. Assicurati che NON sia spuntato "Use build cache".
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                          <ArrowRight size={14} /> Solo dopo la nuova build la chiave sarà visibile al sito!
-                        </p>
-                      </div>
+                    <div className="bg-blue-600 p-8 rounded-[2rem] text-white shadow-2xl">
+                      <h4 className="font-black text-lg mb-4 flex items-center gap-2"><RefreshCw size={22}/> Soluzione Build Error</h4>
+                      <p className="text-blue-100 text-xs leading-relaxed mb-6 font-medium">Se vedi ancora errori su Vercel dopo questo salvataggio:</p>
+                      <ul className="space-y-4 text-[11px]">
+                        <li className="flex gap-3">
+                          <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">1</span>
+                          <span>Vai su Vercel -> <b>Deployments</b>.</span>
+                        </li>
+                        <li className="flex gap-3">
+                          <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">2</span>
+                          <span>Clicca su <b>Redeploy</b> nell'ultimo tentativo.</span>
+                        </li>
+                        <li className="flex gap-3">
+                          <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">3</span>
+                          <span>Controlla che <b>API_KEY</b> sia ancora presente nelle Env Vars.</span>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               )}
               
               {view === 'templates' && (
-                <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                  <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
-                    <div>
-                      <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3"><LayoutGrid size={28} className="text-blue-600"/> Gestione Mockups</h3>
-                      <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Aggiungi o modifica le App in vetrina</p>
-                    </div>
-                    <button onClick={addNewTemplate} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase hover:bg-blue-700 transition-all shadow-xl shadow-blue-100">
-                      <Plus size={20} /> Nuova App
+                <div className="max-w-6xl mx-auto space-y-8">
+                  <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm">
+                    <h3 className="text-2xl font-black text-gray-900">Portfolio App</h3>
+                    <button onClick={addNewTemplate} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase hover:bg-blue-700">
+                      <Plus size={20} /> Aggiungi App
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     {templates.map((t) => (
-                      <div key={t.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-xl flex flex-col sm:flex-row gap-8 relative overflow-visible group">
+                      <div key={t.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-xl flex flex-col sm:flex-row gap-8 relative overflow-visible">
                         
                         <button 
                           type="button"
-                          onClick={(e) => { e.preventDefault(); removeTemplate(t.id); }} 
-                          className="absolute -top-4 -right-4 z-[99] p-4 bg-red-600 text-white rounded-full shadow-2xl hover:bg-red-700 hover:scale-110 active:scale-90 transition-all flex items-center justify-center border-4 border-white cursor-pointer group/del"
+                          onClick={(e) => { e.stopPropagation(); removeTemplate(t.id); }} 
+                          className="absolute -top-3 -right-3 z-50 p-3 bg-red-600 text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
                         >
-                          <Trash2 size={24} strokeWidth={3} className="group-hover/del:animate-bounce" />
+                          <Trash2 size={20} />
                         </button>
                         
-                        <div className="w-full sm:w-44 aspect-[9/18.5] bg-gray-50 rounded-[2.5rem] overflow-hidden border border-gray-200 shadow-inner flex-shrink-0">
+                        <div className="w-full sm:w-44 aspect-[9/18.5] bg-gray-50 rounded-[2.5rem] overflow-hidden border shrink-0">
                           <img src={t.image} className="w-full h-full object-cover" alt="" />
                         </div>
 
                         <div className="flex-1 space-y-5">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-400 uppercase">Nome App</label>
-                              <input value={t.name} onChange={(e) => updateTemplateField(t.id, 'name', e.target.value)} className="w-full p-3 bg-gray-50 border-none rounded-xl text-sm font-black focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-400 uppercase">Categoria</label>
-                              <input value={t.category} onChange={(e) => updateTemplateField(t.id, 'category', e.target.value)} className="w-full p-3 bg-blue-50 text-blue-700 border-none rounded-xl text-sm font-black" />
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase">URL Mockup Screen</label>
-                            <input value={t.image} onChange={(e) => updateTemplateField(t.id, 'image', e.target.value)} className="w-full p-3 bg-gray-50 border-none rounded-xl text-[10px] font-mono text-gray-500" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase">Slogan / Descrizione</label>
-                            <textarea value={t.description || ''} onChange={(e) => updateTemplateField(t.id, 'description', e.target.value)} className="w-full p-3 bg-gray-50 border-none rounded-xl text-[11px] h-20 resize-none leading-relaxed" />
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4 pt-2">
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-500 flex items-center gap-1 text-green-600">Android Link</label>
-                              <input value={t.playStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'playStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 border-none rounded-lg text-[10px]" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-500 flex items-center gap-1 text-blue-600">iOS Link</label>
-                              <input value={t.appStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'appStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 border-none rounded-lg text-[10px]" />
-                            </div>
+                          <input value={t.name} onChange={(e) => updateTemplateField(t.id, 'name', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl text-sm font-black" placeholder="Nome App" />
+                          <input value={t.category} onChange={(e) => updateTemplateField(t.id, 'category', e.target.value)} className="w-full p-3 bg-blue-50 text-blue-700 rounded-xl text-sm font-black" placeholder="Categoria" />
+                          <textarea value={t.description || ''} onChange={(e) => updateTemplateField(t.id, 'description', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl text-[11px] h-24 resize-none" placeholder="Descrizione Marketing" />
+                          <div className="space-y-2">
+                             <input value={t.playStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'playStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link Play Store" />
+                             <input value={t.appStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'appStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link App Store" />
                           </div>
                         </div>
                       </div>
@@ -277,32 +243,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               )}
 
               {view === 'branding' && (
-                <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                  <div className="bg-white p-12 rounded-[3.5rem] shadow-xl border border-gray-100 space-y-12">
-                    <div className="space-y-8">
-                      <h3 className="text-2xl font-black text-gray-900 flex items-center gap-3"><ImageIcon size={30} className="text-blue-600"/> Logo del Sito</h3>
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">URL Logo PNG o SVG</label>
-                        <div className="flex items-center gap-8 p-8 bg-gray-50 rounded-[2.5rem] border border-gray-100">
-                          <input value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="flex-1 p-5 bg-white border-none rounded-2xl text-sm shadow-sm focus:ring-2 focus:ring-blue-500" placeholder="https://..." />
-                          <div className="w-28 h-28 rounded-3xl border-4 border-dashed border-gray-200 flex items-center justify-center bg-white p-4 shrink-0 shadow-inner">
-                            {siteLogo ? <img src={siteLogo} className="max-w-full max-h-full object-contain" alt="Logo Preview" /> : <ImageIcon size={40} className="text-gray-200" />}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-12 border-t border-gray-100">
-                      <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3"><LinkIcon size={30} className="text-blue-600"/> Link Default Store</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Google Play Store</label>
-                          <input value={playStoreUrl} onChange={(e) => setPlayStoreUrl(e.target.value)} className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://play.google..." />
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Apple App Store</label>
-                          <input value={appStoreUrl} onChange={(e) => setAppStoreUrl(e.target.value)} className="w-full p-5 bg-gray-50 border border-gray-100 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://apps.apple..." />
-                        </div>
+                <div className="max-w-3xl mx-auto space-y-8">
+                  <div className="bg-white p-12 rounded-[3.5rem] shadow-xl space-y-12">
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black text-gray-400 uppercase">Logo Sito (URL)</label>
+                      <div className="flex items-center gap-8 p-8 bg-gray-50 rounded-[2.5rem]">
+                        <input value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="flex-1 p-5 bg-white rounded-2xl text-sm" placeholder="https://..." />
+                        {siteLogo && <img src={siteLogo} className="w-20 h-20 object-contain" alt="Logo" />}
                       </div>
                     </div>
                   </div>
@@ -310,18 +257,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            <div className="p-10 bg-white border-t border-gray-100 flex items-center justify-between shrink-0 shadow-2xl z-[80]">
-              <button 
-                onClick={() => { if(window.confirm('ATTENZIONE\n\nVuoi davvero ripristinare il sito ai valori originali di fabbrica?')){ localStorage.clear(); window.location.reload(); } }} 
-                className="text-gray-400 hover:text-red-600 text-[10px] font-black uppercase flex items-center gap-2 px-6 py-4 hover:bg-red-50 rounded-xl transition-all"
-              >
-                <RotateCcw size={18} /> Ripristino Fabbrica
-              </button>
-              
+            <div className="p-10 bg-white border-t flex items-center justify-between">
+              <button onClick={() => { if(window.confirm('Vuoi ripristinare i dati di fabbrica?')){ localStorage.clear(); window.location.reload(); } }} className="text-gray-400 hover:text-red-600 text-[10px] font-black uppercase">Ripristino Totale</button>
               <div className="flex items-center gap-6">
-                <button onClick={onClose} className="px-8 py-4 text-gray-500 font-black text-xs uppercase hover:text-gray-900 transition-colors">Chiudi</button>
-                <button onClick={persistChanges} className="bg-blue-600 text-white px-16 py-5 rounded-[1.5rem] font-black text-base shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
-                  {isSaved ? <><CheckCircle2 size={22} /> MODIFICHE SALVATE!</> : 'SALVA TUTTE LE MODIFICHE'}
+                <button onClick={onClose} className="px-8 py-4 text-gray-500 font-black text-xs uppercase">Annulla</button>
+                <button onClick={persistChanges} className="bg-blue-600 text-white px-16 py-5 rounded-[1.5rem] font-black text-base shadow-2xl hover:bg-blue-700 transition-all flex items-center gap-3">
+                  {isSaved ? <CheckCircle2 size={22} /> : null}
+                  {isSaved ? 'SALVATO!' : 'SALVA TUTTO'}
                 </button>
               </div>
             </div>

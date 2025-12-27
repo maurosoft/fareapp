@@ -8,70 +8,61 @@ Rispondi sempre in Italiano.
 `;
 
 export class GeminiService {
+  private getApiKey(): string | undefined {
+    try {
+      // @ts-ignore
+      return process.env.API_KEY;
+    } catch {
+      return undefined;
+    }
+  }
+
   private getSystemInstruction(): string {
     return localStorage.getItem('fareapp_chatbot_prompt') || DEFAULT_SYSTEM_INSTRUCTION;
   }
 
-  // Debug profondo per capire cosa vede il browser
   getKeyStatus() {
-    console.group("%c [v11.0] AI DIAGNOSTICS ", "background: #2563eb; color: white; font-weight: bold; padding: 2px 5px;");
-    
-    // @ts-ignore
-    const apiKey = process.env.API_KEY;
-    
-    console.log("Variabile process.env.API_KEY:", apiKey);
-    console.log("Tipo rilevato:", typeof apiKey);
-    
-    let status: 'ok' | 'missing' | 'undefined_string' | 'empty' = 'ok';
-    let envMsg = 'Rilevata correttamente';
-
-    if (apiKey === undefined) {
-      status = 'missing';
-      envMsg = 'Mancante (Undefined)';
-    } else if (apiKey === "undefined" || apiKey === "") {
-      status = 'empty';
-      envMsg = 'Vuota o Stringa "undefined"';
-    }
-
-    console.log("Stato Finale:", status);
+    const key = this.getApiKey();
+    console.group("AI Diagnostics v12");
+    console.log("Key present:", !!key);
     console.groupEnd();
 
-    return { status, length: apiKey?.length || 0, env: envMsg };
+    if (!key || key === "undefined" || key === "") {
+      return { status: 'missing' as const, length: 0, env: 'Variabile non rilevata' };
+    }
+    return { status: 'ok' as const, length: key.length, env: 'Configurata' };
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
     try {
-      const { status } = this.getKeyStatus();
-      // @ts-ignore
-      const apiKey = process.env.API_KEY;
+      const apiKey = this.getApiKey();
       
-      if (status !== 'ok') {
+      if (!apiKey || apiKey === "undefined") {
         return { 
           success: false, 
-          message: `[v11.0] ERRORE: Chiave non iniettata. Vercel non ha passato la chiave al sito durante la build. Esegui un 'Redeploy' senza cache.` 
+          message: "[v12.0] ERRORE: Chiave non trovata nel sistema. Controlla Vercel Env Vars e fai un Redeploy." 
         };
       }
       
-      const ai = new GoogleGenAI({ apiKey: apiKey! });
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test tecnico v11. Conferma ricezione.',
+        contents: 'Test connessione v12. Rispondi OK.',
       });
       
       if (response && response.text) {
-        return { success: true, message: `[v11.0] PERFETTO! Alex AI è ora online e funzionante.` };
+        return { success: true, message: "[v12.0] CONNESSIONE RIUSCITA! Alex è online." };
       }
-      return { success: false, message: "[v11.0] Risposta vuota dal server." };
+      return { success: false, message: "[v12.0] Errore risposta." };
     } catch (error: any) {
-      return { success: false, message: `[v11.0] ERRORE GOOGLE: ${error.message}` };
+      return { success: false, message: `[v12.0] ERRORE: ${error.message}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
-      // @ts-ignore
-      const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") return "Alex è in manutenzione. Contattaci a info@fareapp.it";
+      const apiKey = this.getApiKey();
+      if (!apiKey || apiKey === "undefined") return "Assistente offline. Scrivici a info@fareapp.it";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -80,9 +71,9 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Non ho capito bene, puoi ripetere?";
+      return result.text || "Non ho ricevuto risposta.";
     } catch (error) {
-      return "Problema di rete con l'AI.";
+      return "Spiacente, errore di comunicazione.";
     }
   }
 }
