@@ -12,72 +12,68 @@ export class GeminiService {
     return localStorage.getItem('fareapp_chatbot_prompt') || DEFAULT_SYSTEM_INSTRUCTION;
   }
 
-  // Verifica se la chiave è presente (ritorna 'presente', 'mancante' o 'undefined')
-  getKeyStatus(): 'ok' | 'missing' | 'undefined_string' {
+  // Verifica lo stato reale della chiave nel browser
+  getKeyStatus(): { status: 'ok' | 'missing' | 'undefined_string' | 'empty', length: number } {
     const key = process.env.API_KEY;
-    if (!key) return 'missing';
-    if (key === "undefined") return 'undefined_string';
-    if (key.length < 5) return 'missing';
-    return 'ok';
+    if (key === undefined) return { status: 'missing', length: 0 };
+    if (key === "undefined") return { status: 'undefined_string', length: 0 };
+    if (key.trim() === "") return { status: 'empty', length: 0 };
+    return { status: 'ok', length: key.length };
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
-    console.log("[DIAGNOSTICA V4] Controllo variabili d'ambiente...");
+    console.log("[DIAGNOSTICA V5] Controllo profondo in corso...");
     try {
+      const { status, length } = this.getKeyStatus();
       const apiKey = process.env.API_KEY;
-      const status = this.getKeyStatus();
       
       if (status !== 'ok') {
         return { 
           success: false, 
-          message: `[BUILD_PRO_V4] LA CHIAVE MANCA ANCORA. Stato attuale: ${status.toUpperCase()}. 
-          Questo significa che Vercel non ha ancora propagato la variabile API_KEY. 
-          AZIONE RICHIESTA: Vai su Vercel -> Settings -> Environment Variables, assicurati che la chiave si chiami API_KEY, poi vai in 'Deployments' e clicca 'Redeploy' sull'ultimo tentativo.` 
+          message: `[BUILD_PRO_V5] ATTENZIONE: La variabile API_KEY è ${status.toUpperCase()}. 
+          Nonostante tu l'abbia aggiunta su Vercel, il sito corrente NON la vede. 
+          RISOLUZIONE: Devi andare nella tab 'Deployments' di Vercel e fare 'REDEPLOY' sull'ultimo deploy per forzare l'aggiornamento.` 
         };
       }
       
+      // Se arriviamo qui, la chiave esiste fisicamente nel codice
       const ai = new GoogleGenAI({ apiKey: apiKey! });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test: rispondi solo con la parola "CONNESSO"',
+        contents: 'Test di sistema. Rispondi solo: "SISTEMA_OPERATIVO"',
       });
       
       if (response && response.text) {
         return { 
           success: true, 
-          message: `ECCELLENTE! [BUILD_PRO_V4] Connessione stabilita con successo. Alex è ora alimentato dalla tua API Key Gemini.` 
+          message: `URRÀ! [BUILD_PRO_V5] Connessione riuscita. La chiave (lunghezza: ${length} char) è attiva e funzionante.` 
         };
       }
-      return { success: false, message: "[BUILD_PRO_V4] Risposta vuota da Google. Riprova tra pochi secondi." };
+      return { success: false, message: "[BUILD_PRO_V5] Errore: Risposta vuota da Google. La chiave potrebbe essere limitata." };
     } catch (error: any) {
-      console.error("Gemini V4 Error:", error);
+      console.error("Gemini V5 Error:", error);
       const msg = error.message || "";
-      if (msg.includes("API key not valid")) {
-        return { success: false, message: "[BUILD_PRO_V4] CHIAVE NON VALIDA: Google ha rifiutato la chiave. Assicurati di averla copiata correttamente senza spazi." };
-      }
-      return { success: false, message: `[BUILD_PRO_V4] ERRORE GOOGLE: ${msg}` };
+      return { success: false, message: `[BUILD_PRO_V5] ERRORE API: ${msg}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = process.env.API_KEY;
-      if (!apiKey || apiKey === "undefined") return "Alex è attualmente in manutenzione tecnica. Contattaci a info@fareapp.it per assistenza immediata.";
+      if (!apiKey || apiKey === "undefined") return "Alex è temporaneamente offline per aggiornamento chiavi. Contattaci su info@fareapp.it";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
           systemInstruction: this.getSystemInstruction(),
-          temperature: 0.7,
         }
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Scusa, ho avuto un momento di distrazione. Puoi ripetere?";
+      return result.text || "Puoi ripetere? Mi sono perso un attimo.";
     } catch (error) {
-      console.error("Chat Error:", error);
-      return "Siamo spiacenti, c'è stato un errore nella comunicazione con l'assistente. Riprova tra un istante.";
+      return "C'è un piccolo problema tecnico. Alex tornerà tra un istante!";
     }
   }
 }
