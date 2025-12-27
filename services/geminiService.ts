@@ -11,18 +11,14 @@ Guidare l'utente verso la richiesta di un preventivo o contatto, spiegando il va
 TONO DI VOCE:
 Professionale, tecnologico, sicuro di sé, ma empatico e chiaro. Non usare tecnicismi inutili, parla di vantaggi per il business.
 
-PUNTI DI FORZA DA EVIDENZIARE (Usa questi argomenti):
-1. **Sviluppo Nativo**: Non facciamo semplici "siti web in un'app". Usiamo tecnologie native per prestazioni massime e fluidità assoluta.
-2. **Fidelizzazione**: Spiega come le Notifiche Push e le Fidelity Card digitali aumentano il ritorno dei clienti (Retention).
-3. **M-Commerce**: Vendere direttamente dallo smartphone è il futuro.
-4. **Chiavi in mano**: Ci occupiamo di tutto noi: Design UX/UI, Sviluppo, Test e Pubblicazione su Apple Store e Google Play.
+PUNTI DI FORZA DA EVIDENZIARE:
+1. **Sviluppo Nativo**: Prestazioni massime e fluidità assoluta.
+2. **Fidelizzazione**: Notifiche Push e Fidelity Card digitali.
+3. **M-Commerce**: Vendita diretta da smartphone.
+4. **Chiavi in mano**: Design UX/UI, Sviluppo, Test e Pubblicazione.
 
 GESTIONE PREZZI:
-Non fornire mai prezzi fissi o stime numeriche specifiche in chat.
-Rispondi così: "Ogni progetto è unico come la tua azienda. Per darti una stima precisa e senza impegno, ti invito a cliccare sul tasto 'Preventivo Gratuito' o a contattarci direttamente."
-
-CHIUSURA:
-Cerca sempre di chiudere la risposta con una domanda aperta per stimolare la conversazione (es. "Qual è il settore della tua attività?", "Hai già un'idea di come vorresti la tua app?").
+Non fornire mai prezzi fissi. Invita sempre al "Preventivo Gratuito".
 
 Rispondi sempre in Italiano perfetto.
 `;
@@ -34,47 +30,63 @@ export class GeminiService {
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
     try {
-      if (!process.env.API_KEY) {
-        return { success: false, message: "Chiave API non configurata nel sistema." };
+      // Nota: process.env.API_KEY viene iniettato da Vercel durante il build
+      const apiKey = process.env.API_KEY;
+      
+      if (!apiKey || apiKey === "undefined" || apiKey.length < 10) {
+        return { 
+          success: false, 
+          message: "ERRORE: La chiave API non è configurata o non è stata ancora propagata. Hai cliccato su 'Redeploy' in Vercel dopo aver aggiunto la variabile API_KEY?" 
+        };
       }
       
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Ping',
+        contents: 'Ping: rispondi solo "OK"',
       });
       
-      if (response.text) {
-        return { success: true, message: "Connessione IA stabilita con successo!" };
+      if (response && response.text) {
+        return { 
+          success: true, 
+          message: "OTTIMO! La connessione è attiva. Alex (Gemini 3 Flash) è pronto a lavorare per Fare App." 
+        };
       }
-      return { success: false, message: "Risposta vuota dal server." };
+      return { success: false, message: "Risposta vuota dai server Google. Riprova tra pochi istanti." };
     } catch (error: any) {
-      console.error("Test Connection Error:", error);
-      return { success: false, message: error.message || "Errore sconosciuto durante il test." };
+      console.error("Detailed Test Error:", error);
+      const msg = error.message || "";
+      
+      if (msg.includes("API key not valid")) {
+        return { success: false, message: "ERRORE GOOGLE: La chiave API inserita su Vercel non è valida. Controlla di averla copiata correttamente da Google AI Studio." };
+      }
+      if (msg.includes("model not found") || msg.includes("404")) {
+        return { success: false, message: "ERRORE MODELLO: Il modello selezionato non è disponibile per questa chiave API." };
+      }
+      
+      return { success: false, message: `ERRORE SISTEMA: ${msg || "Impossibile contattare l'IA. Verifica la tua connessione."}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) return "Il sistema è in manutenzione. Torneremo online a breve.";
+
+      const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
           systemInstruction: this.getSystemInstruction(),
           temperature: 0.7,
-        },
-        history: history.map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }]
-        })),
+        }
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Scusa, ho avuto un piccolo problema di connessione. Puoi ripetere la domanda?";
+      return result.text || "Non ho capito, puoi ripetere?";
     } catch (error) {
-      console.error("Gemini Error:", error);
-      return "Attualmente i nostri sistemi sono molto trafficati. Per favore, riprova tra qualche istante o contattaci via email.";
+      console.error("Chat Error:", error);
+      return "Siamo spiacenti, Alex ha troppe richieste in questo momento. Riprova tra poco!";
     }
   }
 }

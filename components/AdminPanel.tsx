@@ -47,7 +47,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       if (savedTemplates) {
         try {
           const parsed = JSON.parse(savedTemplates);
-          // Migrazione dati per assicurare che tutti i nuovi campi esistano
           const migrated = parsed.map((t: any) => ({
             ...t,
             description: t.description || '',
@@ -89,12 +88,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
       if (currentAppStore !== undefined) localStorage.setItem('fareapp_app_store_url', currentAppStore);
       
       window.dispatchEvent(new Event('fareapp_data_updated'));
-      
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
       return true;
     } catch (e) {
-      alert("Errore: I dati sono troppo pesanti per il salvataggio locale.");
+      alert("Errore salvataggio locale.");
       return false;
     }
   };
@@ -120,7 +118,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   const handleTestConnection = async () => {
     setTestStatus('loading');
-    setTestMessage('Verifica in corso...');
+    setTestMessage('Inviando segnale di test...');
     const result = await geminiService.testConnection();
     if (result.success) {
       setTestStatus('success');
@@ -175,7 +173,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                   placeholder="Email"
                   required
                 />
@@ -183,7 +181,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                   placeholder="Password"
                   required
                 />
@@ -195,7 +193,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
           </div>
         ) : (
           <>
-            {/* Header Fissato */}
             <div className="bg-gray-900 p-6 text-white flex justify-between items-center shrink-0">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
@@ -223,7 +220,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            {/* Area Contenuto Scrollabile */}
             <div className="flex-1 overflow-y-auto bg-gray-50 custom-scrollbar">
               <div className="p-4 sm:p-8 max-w-5xl mx-auto">
                 
@@ -240,7 +236,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       <div className="grid md:grid-cols-2 gap-10">
                         <div className="space-y-6">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo URL</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Logo URL (Icona)</label>
                             <input type="text" value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm" />
                           </div>
                           <div className="space-y-2">
@@ -272,62 +268,65 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 {view === 'editor' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-200">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
                         <div className="flex items-center gap-4">
                           <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600"><Bot size={24} /></div>
                           <div>
-                            <h3 className="text-xl font-black text-gray-900">Personalità AI</h3>
-                            <p className="text-sm text-gray-500">Modifica il comportamento di Alex o testa il motore.</p>
+                            <h3 className="text-xl font-black text-gray-900">Configurazione IA</h3>
+                            <p className="text-sm text-gray-500">Alex (Gemini) risponde alle richieste dei clienti.</p>
                           </div>
                         </div>
                         
-                        <div className="flex flex-col gap-3 min-w-[280px]">
+                        <div className="flex flex-col gap-3 min-w-[320px]">
                            <button 
                             onClick={handleTestConnection}
                             disabled={testStatus === 'loading'}
-                            className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-100 ${
+                            className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
                               testStatus === 'loading' ? 'bg-gray-100 text-gray-400' : 'bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50'
                             }`}
                            >
-                            {testStatus === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                            {testStatus === 'loading' ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} />}
                             Test Connessione IA
                            </button>
                            
                            {testStatus !== 'idle' && (
-                             <div className={`p-4 rounded-xl flex items-start gap-3 animate-in fade-in zoom-in-95 duration-300 border ${
+                             <div className={`p-5 rounded-2xl flex items-start gap-4 animate-in fade-in zoom-in-95 duration-300 border ${
                                testStatus === 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'
                              }`}>
-                               {testStatus === 'success' ? <CheckCircle2 size={18} className="shrink-0 mt-0.5" /> : <AlertCircle size={18} className="shrink-0 mt-0.5" />}
-                               <div>
-                                 <p className="font-bold text-xs">{testStatus === 'success' ? 'Sistema Operativo' : 'Errore Sistema'}</p>
-                                 <p className="text-[11px] leading-tight opacity-80">{testMessage}</p>
+                               {testStatus === 'success' ? <CheckCircle2 size={20} className="shrink-0 mt-0.5" /> : <AlertCircle size={20} className="shrink-0 mt-0.5" />}
+                               <div className="space-y-1">
+                                 <p className="font-black text-xs uppercase tracking-tight">{testStatus === 'success' ? 'Connessione Stabilita' : 'Problema Rilevato'}</p>
+                                 <p className="text-xs leading-relaxed opacity-90">{testMessage}</p>
                                </div>
                              </div>
                            )}
                         </div>
                       </div>
                       
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">Istruzioni di Sistema (System Prompt)</label>
-                      <textarea
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        className="w-full h-[350px] p-6 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      />
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                           <Pencil size={12}/> Prompt di Sistema (Istruzioni Segrete)
+                        </label>
+                        <textarea
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value)}
+                          className="w-full h-[350px] p-6 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-mono leading-relaxed focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-inner"
+                        />
+                        <p className="text-[10px] text-gray-400 italic">Queste istruzioni definiscono come Alex deve comportarsi e cosa può o non può dire.</p>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {view === 'templates' && (
                   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-                    <div className="flex justify-between items-center mb-4">
-                       <h3 className="text-2xl font-black text-gray-900">Gestione Mockups ({templates.length})</h3>
-                       <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Scorri per modificare tutti i progetti</p>
+                    <div className="flex justify-between items-center">
+                       <h3 className="text-2xl font-black text-gray-900">Mockups Live ({templates.length})</h3>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {templates.map((template) => (
                         <div key={template.id} className="bg-white p-6 sm:p-8 rounded-[2.5rem] shadow-sm border border-gray-200 flex flex-col gap-6 relative group hover:border-blue-200 transition-all">
                           <div className="flex flex-col sm:flex-row gap-6">
-                            {/* Anteprima Immagine */}
                             <div className="w-full sm:w-32 h-56 rounded-2xl overflow-hidden shrink-0 bg-gray-100 border border-gray-200 shadow-inner relative group-inner">
                               <img src={template.image} alt={template.name} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
                               <button 
@@ -346,12 +345,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                               />
                             </div>
 
-                            {/* Campi Testuali Principali */}
                             <div className="flex-1 space-y-4">
                               <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                  <Pencil size={10} /> Nome Applicazione
-                                </label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">Nome App</label>
                                 <input 
                                   type="text" 
                                   value={template.name}
@@ -361,48 +357,40 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                               </div>
                               
                               <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                  <AlignLeft size={10} /> Descrizione Live (fumetto)
-                                </label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">Descrizione Mockup</label>
                                 <textarea 
                                   value={template.description || ''}
                                   onChange={(e) => updateTemplateField(template.id, 'description', e.target.value)}
                                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none transition-all"
-                                  placeholder="Inserisci una breve descrizione per l'utente..."
+                                  placeholder="Cosa vede l'utente sul fumetto..."
                                 />
                               </div>
                             </div>
                           </div>
 
-                          {/* Link Specifici Store */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                <Smartphone size={10} className="text-green-600" /> PlayStore Link (Android)
-                              </label>
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">Android Link</label>
                               <input 
                                 type="url" 
                                 value={template.playStoreUrl || ''}
                                 onChange={(e) => updateTemplateField(template.id, 'playStoreUrl', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-medium outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Link specifico Android..."
+                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-medium"
+                                placeholder="https://..."
                               />
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                <Apple size={10} className="text-gray-900" /> AppStore Link (iOS)
-                              </label>
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">iOS Link</label>
                               <input 
                                 type="url" 
                                 value={template.appStoreUrl || ''}
                                 onChange={(e) => updateTemplateField(template.id, 'appStoreUrl', e.target.value)}
-                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-medium outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Link specifico iOS..."
+                                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-medium"
+                                placeholder="https://..."
                               />
                             </div>
                           </div>
 
-                          {/* Pulsante di salvataggio rapido per il singolo item */}
                           <button 
                             onClick={() => handleSaveItem(template.id)}
                             className={`flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-xs transition-all shadow-md ${
@@ -412,18 +400,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                             }`}
                           >
                             {savingId === template.id ? <Check size={16} /> : <Save size={16} />}
-                            {savingId === template.id ? 'Salvato!' : 'Salva questo mockup'}
+                            {savingId === template.id ? 'Salvato!' : 'Salva Mockup'}
                           </button>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-
               </div>
             </div>
 
-            {/* Footer Fissato con Pulsanti di Azione */}
             <div className="p-6 bg-white border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
               <button 
                 onClick={() => {
@@ -434,29 +420,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 }}
                 className="flex items-center gap-2 text-gray-400 hover:text-red-600 text-[10px] font-bold uppercase transition-colors"
               >
-                <RotateCcw size={14} /> Reset di fabbrica
+                <RotateCcw size={14} /> Ripristino Fabbrica
               </button>
               
               <div className="flex gap-3 w-full sm:w-auto">
-                <button onClick={onClose} className="flex-1 sm:flex-none px-8 py-3.5 border border-gray-200 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-50 transition-colors">Chiudi</button>
+                <button onClick={onClose} className="flex-1 sm:flex-none px-8 py-3.5 border border-gray-200 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-50 transition-colors">Esci</button>
                 <button 
                   onClick={handleSaveAll}
                   className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-10 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
                 >
                   <Save size={18} />
-                  {isSaved ? 'Dati Aggiornati!' : 'Salva Tutte le Modifiche'}
+                  {isSaved ? 'Modifiche Salvate!' : 'Salva Tutto'}
                 </button>
               </div>
             </div>
           </>
         )}
       </div>
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-      `}</style>
     </div>
   );
 };
