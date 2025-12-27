@@ -11,7 +11,8 @@ export class GeminiService {
   private getApiKey(): string | undefined {
     try {
       // @ts-ignore
-      return process.env.API_KEY;
+      const key = process.env.API_KEY || import.meta.env.VITE_API_KEY;
+      return key && key !== "undefined" ? key : undefined;
     } catch {
       return undefined;
     }
@@ -23,46 +24,40 @@ export class GeminiService {
 
   getKeyStatus() {
     const key = this.getApiKey();
-    console.group("AI Diagnostics v12");
-    console.log("Key present:", !!key);
-    console.groupEnd();
-
-    if (!key || key === "undefined" || key === "") {
-      return { status: 'missing' as const, length: 0, env: 'Variabile non rilevata' };
-    }
-    return { status: 'ok' as const, length: key.length, env: 'Configurata' };
+    if (!key) return { status: 'missing' as const, length: 0, env: 'Non Rilevata' };
+    return { status: 'ok' as const, length: key.length, env: 'Attiva' };
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
     try {
       const apiKey = this.getApiKey();
       
-      if (!apiKey || apiKey === "undefined") {
+      if (!apiKey) {
         return { 
           success: false, 
-          message: "[v12.0] ERRORE: Chiave non trovata nel sistema. Controlla Vercel Env Vars e fai un Redeploy." 
+          message: "[v13.0] ERRORE: Chiave API assente. Assicurati che API_KEY sia nelle Environment Variables di Vercel e fai un Redeploy senza cache." 
         };
       }
       
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Test connessione v12. Rispondi OK.',
+        contents: 'Test connessione v13.',
       });
       
       if (response && response.text) {
-        return { success: true, message: "[v12.0] CONNESSIONE RIUSCITA! Alex è online." };
+        return { success: true, message: "[v13.0] ONLINE! L'intelligenza artificiale Alex è connessa correttamente." };
       }
-      return { success: false, message: "[v12.0] Errore risposta." };
+      return { success: false, message: "[v13.0] Errore di comunicazione con Google." };
     } catch (error: any) {
-      return { success: false, message: `[v12.0] ERRORE: ${error.message}` };
+      return { success: false, message: `[v13.0] ERRORE: ${error.message}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = this.getApiKey();
-      if (!apiKey || apiKey === "undefined") return "Assistente offline. Scrivici a info@fareapp.it";
+      if (!apiKey) return "Servizio AI non configurato. Scrivi a info@fareapp.it";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -71,9 +66,9 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Non ho ricevuto risposta.";
+      return result.text || "Spiacente, non ho una risposta al momento.";
     } catch (error) {
-      return "Spiacente, errore di comunicazione.";
+      return "Spiacente, Alex ha un problema di connessione temporaneo.";
     }
   }
 }

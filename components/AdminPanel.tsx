@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings, RotateCcw, X, Lock, CheckCircle2, Image as ImageIcon, Bot, Link as LinkIcon, Loader2, Pencil, Zap, AlertCircle, Smartphone, ExternalLink, Trash2, Plus, LayoutGrid, Info, HelpCircle, ArrowRight, RefreshCw } from 'lucide-react';
+import { Settings, RotateCcw, X, Lock, CheckCircle2, Image as ImageIcon, Bot, Link as LinkIcon, Loader2, Pencil, Zap, AlertCircle, Smartphone, ExternalLink, Trash2, Plus, LayoutGrid, Info, HelpCircle, ChevronRight, RefreshCw } from 'lucide-react';
 import { DEFAULT_SYSTEM_INSTRUCTION, geminiService } from '../services/geminiService';
 import { TEMPLATES as DEFAULT_TEMPLATES } from '../constants';
 import { Template } from '../types';
@@ -97,8 +97,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
   };
 
   const removeTemplate = (id: string) => {
-    const t = templates.find(item => item.id === id);
-    if (window.confirm(`ELIMINAZIONE\n\nVuoi rimuovere "${t?.name || 'questa App'}"?`)) {
+    if (window.confirm("Sei sicuro di voler eliminare questa applicazione dalla galleria?")) {
       setTemplates(prev => prev.filter(item => item.id !== id));
     }
   };
@@ -117,6 +116,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                   <Lock size={36} />
                 </div>
                 <h2 className="font-black text-3xl tracking-tight">Fare App Admin</h2>
+                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Build v13.0 Stable</p>
               </div>
               <form onSubmit={handleLogin} className="space-y-4">
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Email" required />
@@ -133,12 +133,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center gap-8">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-600 p-2.5 rounded-xl"><Settings size={22} /></div>
-                  <h2 className="font-black text-xl">Admin v12.0</h2>
+                  <h2 className="font-black text-xl">Pannello Controllo</h2>
                 </div>
                 <nav className="flex bg-white/5 p-1 rounded-xl">
                   <button onClick={() => setView('editor')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'editor' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>ALEX AI</button>
-                  <button onClick={() => setView('templates')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'templates' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>APP GALLERY</button>
-                  <button onClick={() => setView('branding')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'branding' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>BRANDING</button>
+                  <button onClick={() => setView('templates')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'templates' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>GALLERIA APP</button>
+                  <button onClick={() => setView('branding')} className={`px-5 py-2.5 rounded-lg text-xs font-black transition-all ${view === 'branding' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}>LOGHI & LINK</button>
                 </nav>
               </div>
               <button onClick={onClose} className="hover:bg-white/10 p-2 rounded-full transition-colors text-gray-400 hover:text-white">
@@ -157,12 +157,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           <div className="bg-blue-600 p-4 rounded-2xl text-white shadow-xl"><Bot size={32} /></div>
                           <div>
                             <h3 className="text-xl font-black text-gray-900">Configura Alex AI</h3>
-                            <span className="text-[10px] font-black uppercase text-gray-400">Key Status: {keyInfo.status}</span>
+                            <span className="text-[10px] font-black uppercase text-gray-400">Stato API: {keyInfo.status}</span>
                           </div>
                         </div>
                         <button onClick={handleTestConnection} disabled={testStatus === 'loading'} className="flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-black text-[10px] uppercase bg-gray-900 text-white hover:bg-blue-600 transition-all">
                           {testStatus === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-                          TEST CONNESSIONE v12
+                          TEST SISTEMA v13
                         </button>
                       </div>
 
@@ -173,7 +173,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                       )}
 
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">Istruzioni di sistema</label>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">Prompt Istruzioni</label>
                         <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} className="w-full h-[300px] p-6 bg-gray-50 border border-gray-100 rounded-[1.5rem] text-sm font-mono focus:ring-2 focus:ring-blue-500 outline-none" />
                       </div>
                     </div>
@@ -181,22 +181,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
                   <div className="space-y-6">
                     <div className="bg-blue-600 p-8 rounded-[2rem] text-white shadow-2xl">
-                      <h4 className="font-black text-lg mb-4 flex items-center gap-2"><RefreshCw size={22}/> Soluzione Build Error</h4>
-                      <p className="text-blue-100 text-xs leading-relaxed mb-6 font-medium">Se vedi ancora errori su Vercel dopo questo salvataggio:</p>
+                      <h4 className="font-black text-lg mb-4 flex items-center gap-2"><RefreshCw size={22}/> Guida Vercel</h4>
+                      <p className="text-blue-100 text-xs leading-relaxed mb-6 font-medium">Se la build fallisce o la chiave non viene rilevata:</p>
                       <ul className="space-y-4 text-[11px]">
                         <li className="flex gap-3">
                           <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">1</span>
-                          <span>Vai su Vercel -> <b>Deployments</b>.</span>
+                          <span>Vai su Vercel Dashboard</span>
                         </li>
                         <li className="flex gap-3">
                           <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">2</span>
-                          <span>Clicca su <b>Redeploy</b> nell'ultimo tentativo.</span>
+                          <span>Seleziona tab Deployments</span>
                         </li>
                         <li className="flex gap-3">
                           <span className="bg-white/20 w-5 h-5 rounded-full flex items-center justify-center shrink-0 font-bold">3</span>
-                          <span>Controlla che <b>API_KEY</b> sia ancora presente nelle Env Vars.</span>
+                          <span>Clicca Redeploy su ultimo item</span>
                         </li>
                       </ul>
+                      <div className="mt-6 pt-6 border-t border-white/10">
+                        <p className="text-[10px] font-bold text-blue-200">Nota: Rimuovere la spunta "Use build cache".</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -205,9 +208,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
               {view === 'templates' && (
                 <div className="max-w-6xl mx-auto space-y-8">
                   <div className="flex justify-between items-center bg-white p-6 rounded-[2rem] shadow-sm">
-                    <h3 className="text-2xl font-black text-gray-900">Portfolio App</h3>
+                    <h3 className="text-2xl font-black text-gray-900">Catalogo Mockup</h3>
                     <button onClick={addNewTemplate} className="flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-black text-xs uppercase hover:bg-blue-700">
-                      <Plus size={20} /> Aggiungi App
+                      <Plus size={20} /> Nuova App
                     </button>
                   </div>
 
@@ -217,10 +220,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                         
                         <button 
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); removeTemplate(t.id); }} 
-                          className="absolute -top-3 -right-3 z-50 p-3 bg-red-600 text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                          onClick={() => removeTemplate(t.id)} 
+                          className="absolute -top-3 -right-3 z-50 p-4 bg-red-600 text-white rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all flex items-center justify-center cursor-pointer border-4 border-white"
                         >
-                          <Trash2 size={20} />
+                          <Trash2 size={24} />
                         </button>
                         
                         <div className="w-full sm:w-44 aspect-[9/18.5] bg-gray-50 rounded-[2.5rem] overflow-hidden border shrink-0">
@@ -232,8 +235,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                           <input value={t.category} onChange={(e) => updateTemplateField(t.id, 'category', e.target.value)} className="w-full p-3 bg-blue-50 text-blue-700 rounded-xl text-sm font-black" placeholder="Categoria" />
                           <textarea value={t.description || ''} onChange={(e) => updateTemplateField(t.id, 'description', e.target.value)} className="w-full p-3 bg-gray-50 rounded-xl text-[11px] h-24 resize-none" placeholder="Descrizione Marketing" />
                           <div className="space-y-2">
-                             <input value={t.playStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'playStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link Play Store" />
-                             <input value={t.appStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'appStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link App Store" />
+                             <input value={t.playStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'playStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link Android" />
+                             <input value={t.appStoreUrl || ''} onChange={(e) => updateTemplateField(t.id, 'appStoreUrl', e.target.value)} className="w-full p-2.5 bg-gray-100 rounded-lg text-[10px]" placeholder="Link iOS" />
                           </div>
                         </div>
                       </div>
@@ -246,11 +249,22 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
                 <div className="max-w-3xl mx-auto space-y-8">
                   <div className="bg-white p-12 rounded-[3.5rem] shadow-xl space-y-12">
                     <div className="space-y-4">
-                      <label className="text-[10px] font-black text-gray-400 uppercase">Logo Sito (URL)</label>
+                      <label className="text-[10px] font-black text-gray-400 uppercase">Logo Aziendale (URL)</label>
                       <div className="flex items-center gap-8 p-8 bg-gray-50 rounded-[2.5rem]">
-                        <input value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="flex-1 p-5 bg-white rounded-2xl text-sm" placeholder="https://..." />
+                        <input value={siteLogo} onChange={(e) => setSiteLogo(e.target.value)} className="flex-1 p-5 bg-white rounded-2xl text-sm" placeholder="URL immagine logo" />
                         {siteLogo && <img src={siteLogo} className="w-20 h-20 object-contain" alt="Logo" />}
                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase">Default Play Store</label>
+                            <input value={playStoreUrl} onChange={(e) => setPlayStoreUrl(e.target.value)} className="w-full p-4 bg-gray-50 rounded-xl text-xs" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase">Default App Store</label>
+                            <input value={appStoreUrl} onChange={(e) => setAppStoreUrl(e.target.value)} className="w-full p-4 bg-gray-50 rounded-xl text-xs" />
+                        </div>
                     </div>
                   </div>
                 </div>
@@ -258,12 +272,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div className="p-10 bg-white border-t flex items-center justify-between">
-              <button onClick={() => { if(window.confirm('Vuoi ripristinare i dati di fabbrica?')){ localStorage.clear(); window.location.reload(); } }} className="text-gray-400 hover:text-red-600 text-[10px] font-black uppercase">Ripristino Totale</button>
+              <button type="button" onClick={() => { if(window.confirm('Vuoi cancellare ogni personalizzazione e tornare ai dati originali?')){ localStorage.clear(); window.location.reload(); } }} className="text-gray-400 hover:text-red-600 text-[10px] font-black uppercase">Reset di Fabbrica</button>
               <div className="flex items-center gap-6">
-                <button onClick={onClose} className="px-8 py-4 text-gray-500 font-black text-xs uppercase">Annulla</button>
-                <button onClick={persistChanges} className="bg-blue-600 text-white px-16 py-5 rounded-[1.5rem] font-black text-base shadow-2xl hover:bg-blue-700 transition-all flex items-center gap-3">
+                <button type="button" onClick={onClose} className="px-8 py-4 text-gray-500 font-black text-xs uppercase">Chiudi</button>
+                <button type="button" onClick={persistChanges} className="bg-blue-600 text-white px-16 py-5 rounded-[1.5rem] font-black text-base shadow-2xl hover:bg-blue-700 transition-all flex items-center gap-3">
                   {isSaved ? <CheckCircle2 size={22} /> : null}
-                  {isSaved ? 'SALVATO!' : 'SALVA TUTTO'}
+                  {isSaved ? 'DATI SALVATI!' : 'SALVA TUTTO'}
                 </button>
               </div>
             </div>
