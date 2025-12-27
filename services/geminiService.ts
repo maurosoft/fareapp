@@ -4,23 +4,7 @@ import { ChatMessage } from "../types";
 
 export const DEFAULT_SYSTEM_INSTRUCTION = `
 Sei "Alex", il Senior App Consultant di "Fare App", l'agenzia web d'élite specializzata nello sviluppo di applicazioni mobili Native per iOS e Android.
-
-IL TUO OBIETTIVO:
-Guidare l'utente verso la richiesta di un preventivo o contatto, spiegando il valore aggiunto di avere un'App proprietaria.
-
-TONO DI VOCE:
-Professionale, tecnologico, sicuro di sé, ma empatico e chiaro. Non usare tecnicismi inutili, parla di vantaggi per il business.
-
-PUNTI DI FORZA DA EVIDENZIARE:
-1. **Sviluppo Nativo**: Prestazioni massime e fluidità assoluta.
-2. **Fidelizzazione**: Notifiche Push e Fidelity Card digitali.
-3. **M-Commerce**: Vendita diretta da smartphone.
-4. **Chiavi in mano**: Design UX/UI, Sviluppo, Test e Pubblicazione.
-
-GESTIONE PREZZI:
-Non fornire mai prezzi fissi. Invita sempre al "Preventivo Gratuito".
-
-Rispondi sempre in Italiano perfetto.
+Rispondi sempre in Italiano.
 `;
 
 export class GeminiService {
@@ -28,50 +12,57 @@ export class GeminiService {
     return localStorage.getItem('fareapp_chatbot_prompt') || DEFAULT_SYSTEM_INSTRUCTION;
   }
 
+  // Verifica se la chiave è presente (ritorna 'presente', 'mancante' o 'undefined')
+  getKeyStatus(): 'ok' | 'missing' | 'undefined_string' {
+    const key = process.env.API_KEY;
+    if (!key) return 'missing';
+    if (key === "undefined") return 'undefined_string';
+    if (key.length < 5) return 'missing';
+    return 'ok';
+  }
+
   async testConnection(): Promise<{ success: boolean; message: string }> {
+    console.log("[DIAGNOSTICA V4] Controllo variabili d'ambiente...");
     try {
-      // Nota: process.env.API_KEY viene iniettato da Vercel durante il build
       const apiKey = process.env.API_KEY;
+      const status = this.getKeyStatus();
       
-      if (!apiKey || apiKey === "undefined" || apiKey.length < 10) {
+      if (status !== 'ok') {
         return { 
           success: false, 
-          message: "ERRORE: La chiave API non è configurata o non è stata ancora propagata. Hai cliccato su 'Redeploy' in Vercel dopo aver aggiunto la variabile API_KEY?" 
+          message: `[BUILD_PRO_V4] LA CHIAVE MANCA ANCORA. Stato attuale: ${status.toUpperCase()}. 
+          Questo significa che Vercel non ha ancora propagato la variabile API_KEY. 
+          AZIONE RICHIESTA: Vai su Vercel -> Settings -> Environment Variables, assicurati che la chiave si chiami API_KEY, poi vai in 'Deployments' e clicca 'Redeploy' sull'ultimo tentativo.` 
         };
       }
       
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: apiKey! });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Ping: rispondi solo "OK"',
+        contents: 'Test: rispondi solo con la parola "CONNESSO"',
       });
       
       if (response && response.text) {
         return { 
           success: true, 
-          message: "OTTIMO! La connessione è attiva. Alex (Gemini 3 Flash) è pronto a lavorare per Fare App." 
+          message: `ECCELLENTE! [BUILD_PRO_V4] Connessione stabilita con successo. Alex è ora alimentato dalla tua API Key Gemini.` 
         };
       }
-      return { success: false, message: "Risposta vuota dai server Google. Riprova tra pochi istanti." };
+      return { success: false, message: "[BUILD_PRO_V4] Risposta vuota da Google. Riprova tra pochi secondi." };
     } catch (error: any) {
-      console.error("Detailed Test Error:", error);
+      console.error("Gemini V4 Error:", error);
       const msg = error.message || "";
-      
       if (msg.includes("API key not valid")) {
-        return { success: false, message: "ERRORE GOOGLE: La chiave API inserita su Vercel non è valida. Controlla di averla copiata correttamente da Google AI Studio." };
+        return { success: false, message: "[BUILD_PRO_V4] CHIAVE NON VALIDA: Google ha rifiutato la chiave. Assicurati di averla copiata correttamente senza spazi." };
       }
-      if (msg.includes("model not found") || msg.includes("404")) {
-        return { success: false, message: "ERRORE MODELLO: Il modello selezionato non è disponibile per questa chiave API." };
-      }
-      
-      return { success: false, message: `ERRORE SISTEMA: ${msg || "Impossibile contattare l'IA. Verifica la tua connessione."}` };
+      return { success: false, message: `[BUILD_PRO_V4] ERRORE GOOGLE: ${msg}` };
     }
   }
 
   async getChatResponse(history: ChatMessage[], message: string): Promise<string> {
     try {
       const apiKey = process.env.API_KEY;
-      if (!apiKey) return "Il sistema è in manutenzione. Torneremo online a breve.";
+      if (!apiKey || apiKey === "undefined") return "Alex è attualmente in manutenzione tecnica. Contattaci a info@fareapp.it per assistenza immediata.";
 
       const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
@@ -83,10 +74,10 @@ export class GeminiService {
       });
 
       const result = await chat.sendMessage({ message });
-      return result.text || "Non ho capito, puoi ripetere?";
+      return result.text || "Scusa, ho avuto un momento di distrazione. Puoi ripetere?";
     } catch (error) {
       console.error("Chat Error:", error);
-      return "Siamo spiacenti, Alex ha troppe richieste in questo momento. Riprova tra poco!";
+      return "Siamo spiacenti, c'è stato un errore nella comunicazione con l'assistente. Riprova tra un istante.";
     }
   }
 }
